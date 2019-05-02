@@ -1,0 +1,19 @@
+{
+  "name": "picam_heroku",
+  "version": "1.0.0",
+  "description": "Streaming from raspberry pi",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "rich",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^3.0.2",
+    "body-parser": "^1.18.3",
+    "cookie-session": "^2.0.0-beta.3",
+    "ejs": "^2.6.1",
+    "express": "^4.16.4",
+    "ws": "^6.1.0"
+  }
+}

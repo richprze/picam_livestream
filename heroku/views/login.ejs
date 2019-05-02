@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1"><head>
+	<title>Pi Cam Stream</title>
+
+	<style type="text/css">
+		body {
+			text-align: center;
+			margin: 10px 0px 10px 0px;
+			overflow-y: hidden;
+		}
+		.error { color: red; }
+	</style>
+</head>
+<body>
+	<% if (error) { %>
+	<p class=error>Incorrect username or password. Try again.</p>
+	<% } %>
+	<form method=post>
+		Username: <input type=text name=username><br>
+		Password: <input type=password name=password>
+		<button type=submit id='submit'>Login</button>
+	</form>
+</body>
+</html>

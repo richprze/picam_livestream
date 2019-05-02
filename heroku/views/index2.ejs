@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1"><head>
+    <title>Pi Cam Stream</title>
+
+    <style type="text/css">
+        body {
+        text-align: center;
+        margin-top: 10px;
+        overflow-y: hidden;
+        }
+        #videoCanvas {
+        touch-action: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- The Canvas size specified here is the "initial" internal resolution. jsmpeg will
+        change this internal resolution to whatever the source provides. The size the
+        canvas is displayed on the website is dictated by the CSS style.
+    -->
+    <canvas id="videoCanvas" width="640" height="480">
+        <p>
+            Please use a browser that supports the Canvas Element, like
+            <a href="http://www.google.com/chrome">Chrome</a>,
+            <a href="http://www.mozilla.com/firefox/">Firefox</a>,
+            <a href="http://www.apple.com/safari/">Safari</a> or Internet Explorer 10
+        </p>
+    </canvas>
+    <div id='openclose'>&nbsp;</div>
+    <div id='onMessage'></div>
+    <div id='blah'>
+    </div>
+    <div id='rangeOutput'></div>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1"><head>
+	<title>Pi Cam Stream</title>
+
+	<style type="text/css">
+		body {
+		text-align: center;
+		margin-top: 10px;
+		overflow-y: hidden;
+		}
+		#videoCanvas {
+		touch-action: none;
+		}
+	</style>
+</head>
+<body>
+	<!-- The Canvas size specified here is the "initial" internal resolution. jsmpeg will
+		change this internal resolution to whatever the source provides. The size the
+		canvas is displayed on the website is dictated by the CSS style.
+	-->
+	<canvas id="videoCanvas" width="640" height="480">
+		<p>
+			Please use a browser that supports the Canvas Element, like
+			<a href="http://www.google.com/chrome">Chrome</a>,
+			<a href="http://www.mozilla.com/firefox/">Firefox</a>,
+			<a href="http://www.apple.com/safari/">Safari</a> or Internet Explorer 10
+		</p>
+	</canvas>
+	<div id='openclose'>&nbsp;</div>
+	<div id='onMessage'></div>
+	<div id='blah'>
+	</div>
+	<div id='rangeOutput'></div>
+
+
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"
+		integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+	  crossorigin="anonymous"></script>
+	<script type="text/javascript" src="jsmpeg.js"></script>
+	<script type="text/javascript">
+
+		// Connect to camera stream
+		var canvas = document.getElementById('videoCanvas');
+		// stream diff URL
+		// var url = 'ws://192.168.1.199:8081/';
+
+		if (location.href.search("heroku") >= 0) {
+			// heroku url
+			var url = 'wss://'+document.location.hostname+'/<%= secret %>';
+		} else {
+			// stream localhost
+			var url = 'ws://localhost:3000/<%= secret %>';
+			console.log("URL to send to jsmpeg: " + url);
+		}
+		var player = new JSMpeg.Player(url, {canvas: canvas});
+
+		// viewport
+		var width = window.innerWidth;
+		var height = window.innerHeight;
+		var videoRatio = 640 / 480;
+
+		// canvas location (page):
+		var $canvas = $('canvas');
+
+		// slider for seek
+		var historyHours = 10,
+			min = 0 - (historyHours*60*60) + 1, //Date.now() - (8*60*60),
+			max = 0; // Date.now();
+		var range = "<input type='range' id='control' value=0 min="+min+" max="+max+" step=1 style='width: 90%;'>";
+		$('body').append(range);
+		$('#control').on('input', function() {
+			console.log("change");
+			console.log($(this).val());
+			var timeInSec = Date.now() + $(this).val()*1000;
+			var time = new Date(timeInSec);
+			$('#rangeOutput').text(time.toLocaleTimeString(), " or in sec: ", timeInSec);
+		}).on('touchend mouseup', function() {
+			console.log("slider mouse up");
+			var timeInSec = Date.now() + $(this).val()*1000;
+			seek(timeInSec/1000);
+			console.log("called seek from slider");
+		});
+
+	    function resize() {
+			console.log("in resize fxn");
+			$canvas.width('100%');
+			cWidth = $canvas.width()
+			cHeight = cWidth / videoRatio;
+			// resize canvas
+			$canvas.height(cHeight);
+
+			// resize loader
+			$('#loader').offset({left: $canvas.offset().left});
+			$('#loader').height(cHeight);
+			$('#loader').width(cWidth);
+	    };
+
+		// resize to maximize screen space
+		resize();
+
+		var seek = function(t) {
+			console.log("Seeking to time "+t);
+			$.get('/seek?t='+t)
+				.done(function(d, t, j) {
+					console.log('Seeked');
+					console.log(d.file, d.mtime, d.index);
+					console.log("file: " + d.file);
+					console.log("write time: " + d.mtime);
+					console.log("file index: " + d.index);
+					console.log("time diff: " + (Date.now()/1000 - d.mtime));
+					var mtime = new Date(d.mtime * 1000);
+					console.log("File write time: " + mtime);
+					console.log('Destroying existing player');
+					player.destroy();
+					console.log(player);
+					player = new JSMpeg.Player(d.file, {canvas: canvas, autoplay: true, loop: false, loadFiles: true});
+					$('#loader').fadeOut(500);
+				})
+				.fail(function(j, t, e) {
+					console.log('Seek error');
+					console.log(e.msg);
+				});
+		};
+
+		var live = function() {
+			player.destroy();
+			player = new JSMpeg.Player(url, {canvas: canvas});
+		};
+
+		window.onresize = resize;
+
+	</script>
+</body>
+</html>
