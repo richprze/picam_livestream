@@ -1,4 +1,5 @@
 import sys
+sys.path.append('/home/pi/.local/lib/python3.5/site-packages')
 from flask_bcrypt import generate_password_hash
 
 user = input("Username: ")
