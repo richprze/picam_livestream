@@ -19,8 +19,8 @@ from subprocess import Popen, PIPE
 ###############################
 # CONFIGURATION
 HTTP_PORT = 8089 #4560
-SECRET = 'REPLACE_WITH_SECRET'
-HEROADDR = 'REPLACE_WITH_URL'+SECRET
+SECRET = '261a9635-e30b-4777-9484-71d29bd42292'
+HEROADDR = 'https://gentle-bayou-10830.herokuapp.com/'+SECRET
 ERROR1 = "[Errno 104] Connection reset by peer"
 ERROR2 = "Remote end closed connection without response"
 ###############################
@@ -28,7 +28,7 @@ ERROR2 = "Remote end closed connection without response"
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-handler = RotatingFileHandler('/home/pi/picamstream/server.log', maxBytes=1000000, backupCount=3)
+handler = RotatingFileHandler('/home/pi/picam_livestream/server.log', maxBytes=1000000, backupCount=3)
 handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter("[%(asctime)s] {%(lineno)d} %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
