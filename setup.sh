@@ -1,14 +1,14 @@
 #!/bin/bash
 
 echo "setting up crontab reboot"
-chmod 755 start.sh
+chmod 755 picam_livestream/start.sh
 echo "@reboot pi /home/pi/picam_livestream/start.sh" | sudo tee --append /etc/crontab
 
 # echo "download heroku cli"
 # curl https://cli-assets.heroku.com/install.sh | sh
 
 echo "cd heroku"
-cd heroku
+cd picam_livestream/heroku
 pwd
 
 echo "setup git creds"
@@ -62,3 +62,10 @@ cd ..
 
 echo "replace secret"
 sed -i "s/REPLACE_WITH_SECRET/${UUID}/" server.py
+
+echo "starting"
+sudo bash start.sh
+
+echo " "
+echo "ALL DONE! You can find your live stream on:"
+echo "https://'$HERO'.herokuapp.com"
