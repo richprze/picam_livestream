@@ -54,7 +54,7 @@
 			var url = 'ws://localhost:3000/<%= secret %>';
 			console.log("URL to send to jsmpeg: " + url);
 		}
-		var player = new JSMpeg.Player(url, {canvas: canvas});
+		var player = new JSMpeg.Player(url, {canvas: canvas, videoBufferSize: 1024*1024});
 
 		// viewport
 		var width = window.innerWidth;
