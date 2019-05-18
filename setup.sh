@@ -4,8 +4,8 @@ echo "setting up crontab reboot"
 chmod 755 picam_livestream/start.sh
 echo "@reboot pi /home/pi/picam_livestream/start.sh" | sudo tee --append /etc/crontab
 
-# echo "download heroku cli"
-# curl https://cli-assets.heroku.com/install.sh | sh
+echo "download heroku cli"
+curl https://cli-assets.heroku.com/install.sh | sh
 
 echo "cd heroku"
 cd picam_livestream/heroku
