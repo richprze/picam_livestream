@@ -21,6 +21,7 @@ var app = express();
 
 app.use(cookieSession({
 	name: 'session',
+	maxAge: 1000*60*60*24*2,
 	keys: [TOKEN]
 }))
 
