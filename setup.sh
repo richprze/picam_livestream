@@ -68,4 +68,4 @@ sudo bash start.sh
 
 echo " "
 echo "ALL DONE! You can find your live stream on:"
-echo "https://'$HERO'.herokuapp.com"
+echo "https://$HERO.herokuapp.com"
