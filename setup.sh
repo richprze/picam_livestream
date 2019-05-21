@@ -7,11 +7,11 @@ echo "@reboot pi /home/pi/picam_livestream/start.sh" | sudo tee --append /etc/cr
 echo "download heroku cli"
 curl https://cli-assets.heroku.com/install.sh | sh
 
-echo "cd heroku"
+echo "change to heroku directory"
 cd picam_livestream/heroku
 pwd
 
-echo "setup git creds"
+echo "setup git credentials"
 git config --global user.email "pi@pi.com"
 git config --global user.name "pi user"
 
@@ -20,50 +20,44 @@ git init
 git add .
 git commit -m "first commit"
 
-echo "heroku login"
+echo "login to your heroku account"
 heroku login -i
 
-echo "heroku create"
+echo "create the heroku app"
 heroku create
 
 # echo "set buildpack"
 # heroku buildpacks:set heroku/nodejs
 
-echo "heroku push master"
+echo "deploy the code to heroku"
 git push heroku master
 
-echo "get url"
+echo "get the heroku website url"
 read HERO <<< $(heroku apps:info | awk '/===/ { print $2}')
 
-echo "cd .."
+echo "change back to the main directory"
 cd ..
 
-echo "replace with url"
+echo "replace with your heroku website url"
 sed -i "s/REPLACE_WITH_URL/https:\/\/${HERO}.herokuapp.com\//" server.py
 
-echo "hash_pass"
+echo "create a username and password for your website."
+echo "enter a username and password, twice:"
 python3 hash_pass.py
 
-echo "read pass"
+echo "set the username and hashed password as a heroku config variable"
 read USER PASS <<< $(cat pass.user | awk '{ print $1, $2}')
-
-echo "cd heroku"
 cd heroku
-
-echo "set heroku config"
 heroku config:set $USER=$PASS
 
-echo "create and set secret to config"
+echo "create and set the secret to a heroku config variable"
 UUID=$(cat /proc/sys/kernel/random/uuid)
 heroku config:set SECRET=$UUID
-
-echo "cd .."
+echo "replace with your secret"
 cd ..
-
-echo "replace secret"
 sed -i "s/REPLACE_WITH_SECRET/${UUID}/" server.py
 
-echo "starting"
+echo "start it up!"
 sudo bash start.sh
 
 echo " "
