@@ -2,7 +2,7 @@
 
 Streams live video from a raspberry pi to a web browser. Uses cloud service (free dyno on heroku) to allow you to view the live stream from anywhere without having to change your home network settings.
 
-Streaming uses jsmpeg (https://github.com/phoboslab/jsmpeg) and the ws_relay concept to be able to view the live stream on a cloud-hosted site.
+Streaming uses [jsmpeg](https://github.com/phoboslab/jsmpeg) and the ws_relay concept to be able to view the live stream on a cloud-hosted site.
 
 ## This assumes:
 * you have a raspberry pi 3B or 3A+ (the video encoding requires 4 processors; using a Zero W will be very slow)
@@ -39,22 +39,27 @@ https://guarded-garden-41222.herokuapp.com
 
 The URL is an example Heroku URL. Yours will be different. Go to that site, enter the username and password you created (not the Heroku login) and you should see the live video stream from your Pi!
 
+## The basic concept
+Read the [jsmpeg readme](https://github.com/phoboslab/jsmpeg/blob/master/README.md) for a more detailed explanation of jsmpeg. Picam uses jsmpeg.js as well as the ws_relay concept discussed in the readme. 
+
+On the Pi, ```server.py``` simply wraps the call to avconv (in the jsmpeg readme he uses ffmpeg) in a retry loop. While avconv by itself can send the stream via POST, if the connection breaks for any reason, avconv stops. This simply restarts it. Then server.py is run from the shell script ```runserver.sh``` that is also simply a retry loop in case server.py itself exits. Then ```start.sh``` runs runserver.sh using nohup. Thus everything will run in the background so you can do other things, including disconnecting from SSH.
+
+The real benefit is using a free dyno from Heroku to host ws_relay and provide a webpage to view the video stream. Most tutorials only get you to the ability to view the live stream while on your home network. If you want to access the video stream from outside of your home network you have to enable port forwarding. 
+
+By using a free dyno on Heroku, you eliminate the need to configure port forwarding. You also don't have to deal with your local IP address changing. And you don't have to worry about dev ops for hosting your own website. Plus you can enable free add-ons (like logging) from Heroku.
+
 ## Explanation of the setup script and how this is working
-### Basic concept
-One Pi:
-* Use python
-* Avconv
-* About avconv and settings
+This walks through every command in the setup.sh script.
 
 ### Start streaming on reboot
-Blah
+Update /etc/crontab to run the start.sh script on reboot
 ```
 chmod 755 picam_livestream/start.sh
 echo "@reboot pi /home/pi/picam_livestream/start.sh" | sudo tee --append /etc/crontab
 ```
 
 ### Create and setup a heroku app
-First, download the heroku CLI tool:
+Download and install the Heroku CLI tool:
 ```
 curl https://cli-assets.heroku.com/install.sh | sh
 ```
@@ -83,7 +88,52 @@ deploy the code to heroku:
 ```
 git push heroku master
 ```
+At this point you can access your new heroku app.
 
-### 
+### Update server.py with the heroku app URL
+Save the app url to a var:
+```
+read HERO <<< $(heroku apps:info | awk '/===/ { print $2}')
+```
 
+Replace the 'REPLACE_WITH_URL' text with the heroku app url:
+```
+cd ..
+sed -i "s/REPLACE_WITH_URL/https:\/\/${HERO}.herokuapp.com\//" server.py
+```
 
+### Create a username and password to log into the heroku site
+Using python and flask_bcrypt to hash the password. Prompts the user to enter a username and a password twice. Credentials will save to a local file.
+```
+python3 hash_pass.py
+```
+
+The username and password is stored in Heroku via a config variable. The config variable name is the username and the value is the hashed password. First, read the values from the local file and save to a variable:
+```
+read USER PASS <<< $(cat pass.user | awk '{ print $1, $2}')
+```
+Then set the config var in heroku:
+```
+cd heroku
+heroku config:set $USER=$PASS
+```
+### Create a secret ID to identify the stream
+Avconv will post to herokuapp.com/streamID and the heroku app will only read from a stream posted to herokuapp.com/streamID. First generate the UUID:
+```
+UUID=$(cat /proc/sys/kernel/random/uuid)
+```
+Then set as a config variable in heroku:
+```
+heroku config:set SECRET=$UUID
+```
+And replace REPLACE_WITH_SECRET text with the UUID in server.py:
+```
+cd ..
+sed -i "s/REPLACE_WITH_SECRET/${UUID}/" server.py
+```
+
+### That's it. 
+Final command is to start everything!
+```
+sudo bash start.sh
+```
