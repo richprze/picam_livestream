@@ -1139,11 +1139,6 @@ WSSource.prototype.onClose = function() {
 };
 
 WSSource.prototype.onMessage = function(ev) {
-	console.log("ws.onMessage called");
-	/*
-	cnt += 1;
-	$('#onMessage').text(cnt);
-	*/
 	if (this.destination) {
 		this.destination.write(ev.data);
 	}
