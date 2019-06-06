@@ -2,7 +2,7 @@
 
 ###############################
 #
-# Source: https://github.com/richprze/picamstream
+# Source: https://github.com/richprze/picam_livestream
 # Author: richprze
 #
 ###############################
@@ -18,7 +18,6 @@ from subprocess import Popen, PIPE
 
 ###############################
 # CONFIGURATION
-HTTP_PORT = 8089 #4560
 SECRET = 'REPLACE_WITH_SECRET'
 HEROADDR = 'REPLACE_WITH_URL'+SECRET
 ERROR1 = "[Errno 104] Connection reset by peer"
