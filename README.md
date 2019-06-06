@@ -42,15 +42,17 @@ The URL is an example Heroku URL. Yours will be different. Go to that site, ente
 ## The basic concept
 Read the [jsmpeg readme](https://github.com/phoboslab/jsmpeg/blob/master/README.md) for a more detailed explanation of jsmpeg. Picam uses jsmpeg.js as well as the ws_relay concept discussed in the readme. 
 
-### server.py
-On the Pi, ```server.py``` simply wraps the call to avconv (in the jsmpeg readme he uses ffmpeg) in a retry loop. While avconv by itself can send the stream via POST, if the connection breaks for any reason, avconv stops. This simply pipes the output of avconv to a requests POST call to the Heroku app. If there is a connection error, the error is logged, the program sleeps for 2 seconds and then the POSt is retried. server.py is run via the shell script ```runserver.sh``` that is also simply a retry loop in case server.py itself exits. Then ```start.sh``` does 2 things. First it setups the camera module to run via video4linux. It also runs the runserver.sh script using nohup, so that it runs in the background allowing you can do other things, including disconnecting from SSH.
+### On the Pi
+Picam_livestream uses avconv to encode the video input to the mpeg1video format required for use with jsmpeg. Again, read the [jsmpeg readme](https://github.com/phoboslab/jsmpeg/blob/master/README.md) for more information (note: he uses ffmpeg; avconv is a fork of ffmpeg but essentially functions exactly the same). While avconv by itself can send the stream via POST, if the connection breaks for any reason, avconv stops. 
+
+```server.py``` pipes the output of avconv to a requests POST call to the Heroku app. The requerst POST call is made inside a retry loop. If there is a connection error, the error is logged, the program sleeps for 2 seconds and then the POST is retried. server.py is run via the shell script ```runserver.sh```. This is also a retry loop in case server.py itself exits. ```start.sh``` does 2 things. First it setups the camera module to run via video4linux. Second it runs the runserver.sh script using nohup, so that it runs in the background allowing you to do other things, including disconnecting from SSH.
 
 ### Heroku and app.js
 The real benefit is using a free dyno from Heroku to host ws_relay and provide a webpage to view the video stream. Most tutorials only get you to the ability to view the live stream while on your home network. If you want to access the video stream from outside of your home network you have to enable port forwarding. 
 
 By using a free dyno on Heroku, you eliminate the need to configure port forwarding. You also don't have to deal with your local IP address changing. And you don't have to worry about dev ops for hosting your own website. Plus you can enable free add-ons (like logging) from Heroku.
 
-```app.js``` is an express app that runs on Heroku. It receives video stream via the POST call from server.py and uses websockets to broadcast the stream to any subscriber. The video is played via jsmpeg on the index page. The site requires login credentials in order to view the video.
+```app.js``` is an express app that runs on Heroku. It receives a video stream via the POST call from server.py and uses websockets to broadcast the stream to subscribers. The video is played via jsmpeg on the index page. The site requires login credentials in order to view the video.
 
 ### setup.sh
 The setup script does a few things (see the script itself for detailed comments):
