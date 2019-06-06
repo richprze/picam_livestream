@@ -42,98 +42,21 @@ The URL is an example Heroku URL. Yours will be different. Go to that site, ente
 ## The basic concept
 Read the [jsmpeg readme](https://github.com/phoboslab/jsmpeg/blob/master/README.md) for a more detailed explanation of jsmpeg. Picam uses jsmpeg.js as well as the ws_relay concept discussed in the readme. 
 
-On the Pi, ```server.py``` simply wraps the call to avconv (in the jsmpeg readme he uses ffmpeg) in a retry loop. While avconv by itself can send the stream via POST, if the connection breaks for any reason, avconv stops. This simply restarts it. Then server.py is run from the shell script ```runserver.sh``` that is also simply a retry loop in case server.py itself exits. Then ```start.sh``` runs runserver.sh using nohup. Thus everything will run in the background so you can do other things, including disconnecting from SSH.
+### server.py
+On the Pi, ```server.py``` simply wraps the call to avconv (in the jsmpeg readme he uses ffmpeg) in a retry loop. While avconv by itself can send the stream via POST, if the connection breaks for any reason, avconv stops. This simply pipes the output of avconv to a requests POST call to the Heroku app. If there is a connection error, the error is logged, the program sleeps for 2 seconds and then the POSt is retried. server.py is run via the shell script ```runserver.sh``` that is also simply a retry loop in case server.py itself exits. Then ```start.sh``` does 2 things. First it setups the camera module to run via video4linux. It also runs the runserver.sh script using nohup, so that it runs in the background allowing you can do other things, including disconnecting from SSH.
 
+### Heroku and app.js
 The real benefit is using a free dyno from Heroku to host ws_relay and provide a webpage to view the video stream. Most tutorials only get you to the ability to view the live stream while on your home network. If you want to access the video stream from outside of your home network you have to enable port forwarding. 
 
 By using a free dyno on Heroku, you eliminate the need to configure port forwarding. You also don't have to deal with your local IP address changing. And you don't have to worry about dev ops for hosting your own website. Plus you can enable free add-ons (like logging) from Heroku.
 
-## Explanation of the setup script and how this is working
-This walks through every command in the setup.sh script.
+```app.js``` is an express app that runs on Heroku. It receives video stream via the POST call from server.py and uses websockets to broadcast the stream to any subscriber. The video is played via jsmpeg on the index page. The site requires login credentials in order to view the video.
 
-### Start streaming on reboot
-Update /etc/crontab to run the start.sh script on reboot
-```
-chmod 755 picam_livestream/start.sh
-echo "@reboot pi /home/pi/picam_livestream/start.sh" | sudo tee --append /etc/crontab
-```
-
-### Create and setup a heroku app
-Download and install the Heroku CLI tool:
-```
-curl https://cli-assets.heroku.com/install.sh | sh
-```
-
-Change to the heroku directory in order to create and deploy to the app
-```
-cd picam_livestream/heroku
-```
-
-Deploying code to heroku is done via git. So setup git credentials and then commit the code in the /heroku directory:
-```
-git config --global user.email "pi@pi.com"
-git config --global user.name "pi user"
-git init
-git add .
-git commit -m "first commit"
-```
-
-login to your heroku account and create the app
-```
-heroku login -i
-heroku create
-```
-
-deploy the code to heroku:
-```
-git push heroku master
-```
-At this point you can access your new heroku app.
-
-### Update server.py with the heroku app URL
-Save the app url to a var:
-```
-read HERO <<< $(heroku apps:info | awk '/===/ { print $2}')
-```
-
-Replace the 'REPLACE_WITH_URL' text with the heroku app url:
-```
-cd ..
-sed -i "s/REPLACE_WITH_URL/https:\/\/${HERO}.herokuapp.com\//" server.py
-```
-
-### Create a username and password to log into the heroku site
-Using python and flask_bcrypt to hash the password. Prompts the user to enter a username and a password twice. Credentials will save to a local file.
-```
-python3 hash_pass.py
-```
-
-The username and password is stored in Heroku via a config variable. The config variable name is the username and the value is the hashed password. First, read the values from the local file and save to a variable:
-```
-read USER PASS <<< $(cat pass.user | awk '{ print $1, $2}')
-```
-Then set the config var in heroku:
-```
-cd heroku
-heroku config:set $USER=$PASS
-```
-### Create a secret ID to identify the stream
-Avconv will post to herokuapp.com/streamID and the heroku app will only read from a stream posted to herokuapp.com/streamID. First generate the UUID:
-```
-UUID=$(cat /proc/sys/kernel/random/uuid)
-```
-Then set as a config variable in heroku:
-```
-heroku config:set SECRET=$UUID
-```
-And replace REPLACE_WITH_SECRET text with the UUID in server.py:
-```
-cd ..
-sed -i "s/REPLACE_WITH_SECRET/${UUID}/" server.py
-```
-
-### That's it. 
-Final command is to start everything!
-```
-sudo bash start.sh
-```
+### setup.sh
+The setup script does a few things (see the script itself for detailed comments):
+1. Add start.sh to crontab to run on reboot
+2. Create and setup the heroku app (requires user to have a Heroku account and prompts user to login)
+3. Updates server.py with the heroku app details
+4. Prompts user to create a username and password to use to login to the heroku app
+5. Create a unique ID for the stream and save it to server.py and heroku app
+6. Run start.sh script to start it!
