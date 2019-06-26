@@ -61,12 +61,6 @@ app.get('/', auth, function (req, res) {
 	res.render('index', { secret: STREAM_SECRET });
 })
 
-app.get('/cam', auth, function (req, res) {
-	// home page is the main page to view video
-	console.log("cam page");
-	res.render('cam', { secret: STREAM_SECRET });
-})
-
 app.get('/login', function (req, res) {
 	// login form
 	console.log(req.query.error);

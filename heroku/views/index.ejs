@@ -1,136 +1,143 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1"><head>
+    <head>
+	<meta name="viewport" content="width=device-width, initial-scale=1"></meta>
 	<title>Pi Cam Stream</title>
-
 	<style type="text/css">
-		body {
+	    body {
 		text-align: center;
-		margin-top: 10px;
+		margin: 10px 0px 10px 0px;
 		overflow-y: hidden;
-		}
-		#videoCanvas {
+	    }
+	    #videoCanvas {
 		touch-action: none;
-		}
+	    }
 	</style>
-</head>
-<body>
+    </head>
+    <body>
 	<!-- The Canvas size specified here is the "initial" internal resolution. jsmpeg will
-		change this internal resolution to whatever the source provides. The size the
-		canvas is displayed on the website is dictated by the CSS style.
+     change this internal resolution to whatever the source provides. The size the
+     canvas is displayed on the website is dictated by the CSS style.
 	-->
-	<canvas id="videoCanvas" width="640" height="480">
-		<p>
-			Please use a browser that supports the Canvas Element, like
-			<a href="http://www.google.com/chrome">Chrome</a>,
-			<a href="http://www.mozilla.com/firefox/">Firefox</a>,
-			<a href="http://www.apple.com/safari/">Safari</a> or Internet Explorer 10
-		</p>
+	<canvas id="videoCanvas">
+	    <p>
+	    Please use a browser that supports the Canvas Element, like
+	    <a href="http://www.google.com/chrome">Chrome</a>,
+	    <a href="http://www.mozilla.com/firefox/">Firefox</a>,
+	    <a href="http://www.apple.com/safari/">Safari</a> or Internet Explorer 10
+	    </p>
 	</canvas>
+	<!--<img id='loader' src="/static/images/video-loading.gif" style="position: absolute; top: 10px;">-->
 	<div id='openclose'>&nbsp;</div>
 	<div id='onMessage'></div>
-	<div id='blah'>
-	</div>
-	<div id='rangeOutput'></div>
-
 
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"
-		integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
-	  crossorigin="anonymous"></script>
+	 integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+  crossorigin="anonymous"></script>
 	<script type="text/javascript" src="jsmpeg.js"></script>
 	<script type="text/javascript">
 
-		// Connect to camera stream
-		var canvas = document.getElementById('videoCanvas');
-		// stream diff URL
-		// var url = 'ws://192.168.1.199:8081/';
+// Connect to camera stream
+var canvas = document.getElementById('videoCanvas');
+canvas.addEventListener("touchstart", touchstart_handler);
+canvas.addEventListener("touchmove", touchmove_handler);
+canvas.addEventListener("touchend", touchend_handler);
 
-		if (location.href.search("heroku") >= 0) {
-			// heroku url
-			var url = 'wss://'+document.location.hostname+'/<%= secret %>';
-		} else {
-			// stream localhost
-			var url = 'ws://localhost:3000/<%= secret %>';
-			console.log("URL to send to jsmpeg: " + url);
-		}
-		var player = new JSMpeg.Player(url, {canvas: canvas, videoBufferSize: 1024*1024});
+if (location.href.search("heroku") >= 0) {
+    // heroku url
+    var url = 'wss://'+document.location.hostname+'/<%= secret %>';
+} else {
+    // stream localhost
+    var url = 'ws://localhost:3000/<%= secret %>';
+}
+var player = new JSMpeg.Player(url, {canvas: canvas, videoBufferSize: 1024*1024});
 
-		// viewport
-		var width = window.innerWidth;
-		var height = window.innerHeight;
-		var videoRatio = 640 / 480;
+var prevDiff = 0;
+var startDiff = -1;
 
-		// canvas location (page):
-		var $canvas = $('canvas');
+// viewport
+var width = $(window).width();
+var height = $(window).height() - 100; // -35 for 10px margin top and button row and buffer
+var cWidth = 640;
+var cHeight = 480;
+var videoRatio = cWidth / cHeight;
 
-		// slider for seek
-		var historyHours = 10,
-			min = 0 - (historyHours*60*60) + 1, //Date.now() - (8*60*60),
-			max = 0; // Date.now();
-		var range = "<input type='range' id='control' value=0 min="+min+" max="+max+" step=1 style='width: 90%;'>";
-		$('body').append(range);
-		$('#control').on('input', function() {
-			console.log("change");
-			console.log($(this).val());
-			var timeInSec = Date.now() + $(this).val()*1000;
-			var time = new Date(timeInSec);
-			$('#rangeOutput').text(time.toLocaleTimeString(), " or in sec: ", timeInSec);
-		}).on('touchend mouseup', function() {
-			console.log("slider mouse up");
-			var timeInSec = Date.now() + $(this).val()*1000;
-			seek(timeInSec/1000);
-			console.log("called seek from slider");
-		});
+// canvas location (page):
+var $canvas = $('canvas');
 
-	    function resize() {
-			console.log("in resize fxn");
-			$canvas.width('100%');
-			cWidth = $canvas.width()
-			cHeight = cWidth / videoRatio;
-			// resize canvas
-			$canvas.height(cHeight);
 
-			// resize loader
-			$('#loader').offset({left: $canvas.offset().left});
-			$('#loader').height(cHeight);
-			$('#loader').width(cWidth);
-	    };
+function touchstart_handler(ev) {
+    console.log(ev);
+    if (ev.targetTouches.length === 2 && startDiff < 0) {
+	// only prevent default if 2 touches (user is pinching and zooming). Otherwise allow scrolling.
+	ev.preventDefault();
+	startDiff = Math.abs(ev.targetTouches[0].clientX - ev.targetTouches[1].clientX);
+	prevDiff = 0;
+    }
+}
 
-		// resize to maximize screen space
-		resize();
+function touchmove_handler(ev) {
+    console.log("touch move");
+    console.log(ev);
+    console.log(ev.targetTouches[0]);
+    if (ev.targetTouches.length == 2) {
+	var diff = Math.abs(ev.targetTouches[0].clientX - ev.targetTouches[1].clientX);
+	var curDiff = diff - startDiff;
+	var delta = curDiff - prevDiff;
+	var delta_ratio = 2;
+	delta_canvas(delta * delta_ratio);
+	prevDiff = curDiff;
+    }
+}
 
-		var seek = function(t) {
-			console.log("Seeking to time "+t);
-			$.get('/seek?t='+t)
-				.done(function(d, t, j) {
-					console.log('Seeked');
-					console.log(d.file, d.mtime, d.index);
-					console.log("file: " + d.file);
-					console.log("write time: " + d.mtime);
-					console.log("file index: " + d.index);
-					console.log("time diff: " + (Date.now()/1000 - d.mtime));
-					var mtime = new Date(d.mtime * 1000);
-					console.log("File write time: " + mtime);
-					console.log('Destroying existing player');
-					player.destroy();
-					console.log(player);
-					player = new JSMpeg.Player(d.file, {canvas: canvas, autoplay: true, loop: false, loadFiles: true});
-					$('#loader').fadeOut(500);
-				})
-				.fail(function(j, t, e) {
-					console.log('Seek error');
-					console.log(e.msg);
-				});
-		};
+function touchend_handler(ev) {
+    console.log("touch ended");
+    prevDiff = 0;
+    startDiff = -1;
+}
 
-		var live = function() {
-			player.destroy();
-			player = new JSMpeg.Player(url, {canvas: canvas});
-		};
+function delta_canvas(delta) {
+    // prevent zooming in more than original size
+    var new_width = Math.max($canvas.width() + delta, cWidth);
+    var new_height = Math.max(new_width / videoRatio, cHeight);
 
-		window.onresize = resize;
+    $canvas.width(new_width);
+    $canvas.height(new_height);
+
+    // resize loader
+    $('#loader').offset({left: $canvas.offset().left, top: $canvas.offset().top});
+    $('#loader').width(new_width);
+    $('#loader').height(new_height);
+}
+
+function resize() {
+    console.log("in resize fxn");
+    var windowRatio = $(window).width() / ($(window).height() - 100);
+    if (windowRatio > videoRatio) { // height is limiting
+	cHeight = $(window).height() - 100;
+	cWidth = cHeight * videoRatio;
+    } else { // width is limiting
+	cWidth = $(window).width();
+	cHeight = cWidth / videoRatio;
+    }
+
+    // To do proper zooming have to adjust the CSS height and width
+    // JSMPEG handles canvas video size (canvas el height and width)
+    $canvas.width(cWidth);
+    $canvas.height(cHeight);
+
+    // resize loader
+    $('#loader').offset({left: $canvas.offset().left, top: $canvas.offset().top});
+    $('#loader').width(cWidth);
+    $('#loader').height(cHeight);
+};
+
+// resize to maximize screen space
+resize();
+
+//$(document).ready(resize());
+window.onresize = resize();
 
 	</script>
-</body>
+    </body>
 </html>
