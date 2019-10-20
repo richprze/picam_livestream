@@ -36,10 +36,10 @@ logger.addHandler(handler)
 
 if __name__ == '__main__':
 
-    logger.info("Popen avconv")
+    logger.info("Popen ffmpeg")
     url = HEROADDR
     output = Popen(
-        "avconv -loglevel fatal -f v4l2 -video_size 640x480 -r 25 -i /dev/video0 -f mpegts -vf 'vflip, hflip' -vcodec mpeg1video -s 640x480 -b:v 1000k -bf 0 -",
+        "ffmpeg -loglevel fatal -f v4l2 -video_size 640x480 -r 25 -i /dev/video0 -f mpegts -vf 'vflip, hflip' -vcodec mpeg1video -s 640x480 -b:v 1000k -bf 0 -",
         stdout=PIPE, stderr=sys.stdout, shell=True)
 
     attempt = 0
