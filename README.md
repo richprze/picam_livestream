@@ -1,6 +1,6 @@
 # picam_livestream
 
-Streams live video from a raspberry pi to a web browser. Uses cloud service (free dyno on heroku) to allow you to view the live stream from anywhere without having to change your home network settings.
+A basic replacement for a nest cam. Streams live video from a raspberry pi to a web browser. Uses cloud service (free dyno on heroku) to allow you to view the live stream from anywhere without having to change your home network settings.
 
 Streaming uses [jsmpeg](https://github.com/phoboslab/jsmpeg) and the ws_relay concept to be able to view the live stream on a cloud-hosted site.
 
@@ -13,8 +13,8 @@ Streaming uses [jsmpeg](https://github.com/phoboslab/jsmpeg) and the ws_relay co
 ## Instructions
 First, make sure you you have the following installed on the pi:
 ```
-sudo apt-get install -y python3-pip git libav-tools libffi-dev
-pip3 install requests flask_bcrypt
+sudo apt-get install -y python3-pip git ffmpeg libffi-dev nodejs
+sudo pip3 install bcrypt
 ```
 
 Second, clone the repo:
