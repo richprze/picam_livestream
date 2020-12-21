@@ -3,7 +3,7 @@
 #### 1. Update /etc/crontab to run the start.sh script on reboot ####
 echo "setting up crontab reboot"
 chmod 755 picam_livestream/start.sh
-echo "@reboot pi /home/pi/picam_livestream/start.sh" | sudo tee --append /etc/crontab
+echo "@reboot pi sudo bash /home/pi/picam_livestream/start.sh" | sudo tee --append /etc/crontab
 
 #### 2. Create and Setup Heroku App ####
 
@@ -27,7 +27,11 @@ git commit -m "first commit"
 
 # login to your heroku account and create the app
 echo "login to your heroku account"
-heroku login -i
+read SUCC <<< $(heroku login -i | awk '/Logged in as/ {print}')
+if [[ -z $SUCC ]]; then
+	echo "login failed. You have 1 more try. Make sure your password is correct!"
+	read SUCC <<< $(heroku login -i | awk '/Logged in as/ {print}')
+fi
 
 echo "create the heroku app"
 heroku create
