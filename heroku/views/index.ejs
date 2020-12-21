@@ -27,9 +27,10 @@
 	    <a href="http://www.apple.com/safari/">Safari</a> or Internet Explorer 10
 	    </p>
 	</canvas>
-	<!--<img id='loader' src="/static/images/video-loading.gif" style="position: absolute; top: 10px;">-->
+	<img id='loader' src="loading.gif" style="position: absolute; top: 10px;">
 	<div id='openclose'>&nbsp;</div>
 	<div id='onMessage'></div>
+	<div id='fs'>Click for fullscreen</div>
 
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"
 	 integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
@@ -39,9 +40,12 @@
 
 // Connect to camera stream
 var canvas = document.getElementById('videoCanvas');
+var fs = document.getElementById('fs');
 canvas.addEventListener("touchstart", touchstart_handler);
 canvas.addEventListener("touchmove", touchmove_handler);
 canvas.addEventListener("touchend", touchend_handler);
+fs.addEventListener("click", fullscreen);
+fs.addEventListener("touchend", fullscreen);
 
 if (location.href.search("heroku") >= 0) {
     // heroku url
@@ -96,6 +100,19 @@ function touchend_handler(ev) {
     startDiff = -1;
 }
 
+function fullscreen() {
+    if (canvas.webkitRequestFullScreen) {
+        canvas.webkitRequestFullScreen();
+    } else {
+        canvas.mozRequestFullScreen();
+    }
+}
+
+function resize_loader(w, h) {
+    $('#loader').offset({left: $canvas.offset().left, top: $canvas.offset().top});
+    $('#loader').width(w);
+    $('#loader').height(h);
+}
 function delta_canvas(delta) {
     // prevent zooming in more than original size
     var new_width = Math.max($canvas.width() + delta, cWidth);
@@ -105,9 +122,7 @@ function delta_canvas(delta) {
     $canvas.height(new_height);
 
     // resize loader
-    $('#loader').offset({left: $canvas.offset().left, top: $canvas.offset().top});
-    $('#loader').width(new_width);
-    $('#loader').height(new_height);
+    resize_loader(new_width, new_height);
 }
 
 function resize() {
@@ -127,16 +142,14 @@ function resize() {
     $canvas.height(cHeight);
 
     // resize loader
-    $('#loader').offset({left: $canvas.offset().left, top: $canvas.offset().top});
-    $('#loader').width(cWidth);
-    $('#loader').height(cHeight);
+    resize_loader(cWidth, cHeight);
 };
 
 // resize to maximize screen space
 resize();
 
 //$(document).ready(resize());
-window.onresize = resize();
+window.onresize = resize;
 
 	</script>
     </body>
