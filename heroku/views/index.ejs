@@ -27,25 +27,13 @@
 	    <a href="http://www.apple.com/safari/">Safari</a> or Internet Explorer 10
 	    </p>
 	</canvas>
-	<img id='loader' src="loading.gif" style="position: absolute; top: 10px;">
-	<div id='openclose'>&nbsp;</div>
-	<div id='onMessage'></div>
-	<div id='fs'>Click for fullscreen</div>
+	<div id='loader' style="position: absolute; top: 10px; background-color: black; background-image: url(/loading.gif); background-position: center; background-repeat: no-repeat;"></div>
 
-	<script src="https://code.jquery.com/jquery-3.1.1.min.js"
-	 integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
-  crossorigin="anonymous"></script>
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
 	<script type="text/javascript" src="jsmpeg.js"></script>
 	<script type="text/javascript">
 
-// Connect to camera stream
 var canvas = document.getElementById('videoCanvas');
-var fs = document.getElementById('fs');
-canvas.addEventListener("touchstart", touchstart_handler);
-canvas.addEventListener("touchmove", touchmove_handler);
-canvas.addEventListener("touchend", touchend_handler);
-fs.addEventListener("click", fullscreen);
-fs.addEventListener("touchend", fullscreen);
 
 if (location.href.search("heroku") >= 0) {
     // heroku url
@@ -56,9 +44,6 @@ if (location.href.search("heroku") >= 0) {
 }
 var player = new JSMpeg.Player(url, {canvas: canvas, videoBufferSize: 1024*1024});
 
-var prevDiff = 0;
-var startDiff = -1;
-
 // viewport
 var width = $(window).width();
 var height = $(window).height() - 100; // -35 for 10px margin top and button row and buffer
@@ -66,63 +51,12 @@ var cWidth = 640;
 var cHeight = 480;
 var videoRatio = cWidth / cHeight;
 
-// canvas location (page):
 var $canvas = $('canvas');
-
-
-function touchstart_handler(ev) {
-    console.log(ev);
-    if (ev.targetTouches.length === 2 && startDiff < 0) {
-	// only prevent default if 2 touches (user is pinching and zooming). Otherwise allow scrolling.
-	ev.preventDefault();
-	startDiff = Math.abs(ev.targetTouches[0].clientX - ev.targetTouches[1].clientX);
-	prevDiff = 0;
-    }
-}
-
-function touchmove_handler(ev) {
-    console.log("touch move");
-    console.log(ev);
-    console.log(ev.targetTouches[0]);
-    if (ev.targetTouches.length == 2) {
-	var diff = Math.abs(ev.targetTouches[0].clientX - ev.targetTouches[1].clientX);
-	var curDiff = diff - startDiff;
-	var delta = curDiff - prevDiff;
-	var delta_ratio = 2;
-	delta_canvas(delta * delta_ratio);
-	prevDiff = curDiff;
-    }
-}
-
-function touchend_handler(ev) {
-    console.log("touch ended");
-    prevDiff = 0;
-    startDiff = -1;
-}
-
-function fullscreen() {
-    if (canvas.webkitRequestFullScreen) {
-        canvas.webkitRequestFullScreen();
-    } else {
-        canvas.mozRequestFullScreen();
-    }
-}
 
 function resize_loader(w, h) {
     $('#loader').offset({left: $canvas.offset().left, top: $canvas.offset().top});
     $('#loader').width(w);
     $('#loader').height(h);
-}
-function delta_canvas(delta) {
-    // prevent zooming in more than original size
-    var new_width = Math.max($canvas.width() + delta, cWidth);
-    var new_height = Math.max(new_width / videoRatio, cHeight);
-
-    $canvas.width(new_width);
-    $canvas.height(new_height);
-
-    // resize loader
-    resize_loader(new_width, new_height);
 }
 
 function resize() {

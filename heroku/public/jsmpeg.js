@@ -1119,7 +1119,6 @@ WSSource.prototype.resume = function(secondsHeadroom) {
 
 WSSource.prototype.onOpen = function() {
 	console.log("3d. ws.onOpen called");
-	$('#openclose').css('background-color', 'green');
 	$('#loader').fadeOut(500);
 	this.progress = 1;
 	this.established = true;
@@ -1128,7 +1127,6 @@ WSSource.prototype.onOpen = function() {
 
 WSSource.prototype.onClose = function() {
 	console.log("3e. ws.onClose called");
-	$('#openclose').css('background-color', 'red');
 	if (!this.destroying) { $('#loader').show(); };
 	if (this.shouldAttemptReconnect) {
 		clearTimeout(this.reconnectTimeoutId);
