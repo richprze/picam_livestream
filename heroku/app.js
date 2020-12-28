@@ -33,11 +33,12 @@ app.set('view engine', 'ejs');
 
 // Auth function used for client access
 var auth = function(req, res, next) {
+	console.log(req.session);
 	if (!req.session.loggedin) {
 		// Instead redirect to login page
 		res.redirect('/login');
 	} else {
-		// TODO: extend cookie expiration date?
+		req.session.nowInMinutes = Math.floor(Date.now() / 60e3)
 		next();
 	}
 };
