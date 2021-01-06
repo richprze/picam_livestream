@@ -22,8 +22,8 @@ Very, very well. Checkout two different comparison videos of picam_livestream:
 * A Raspberry Pi with 4 cores is preferred (e.g., 3B or 3A+).
   * The ZeroW will work, but the quality is lower and the delay is greater (~ 4 seconds). Also you have to change the ffmpeg command in server.py
 * A camera that connects to the pi. Can connect either via the ribbon or via USB. Here are some suggestions:
-  * The most basic - https://www.amazon.com/gp/product/B00N1YJKFS/
-  * If you need nightvision - https://www.amazon.com/gp/product/B0829HZ3Q7/
+  * [The most basic](https://www.amazon.com/gp/product/B00N1YJKFS/ref=as_li_tl?ie=UTF8&camp=1789&creative=9325&creativeASIN=B00N1YJKFS&linkCode=as2&tag=richiep0d-20&linkId=2776bd51f8ab3f90bf998ea851f2415f)
+  * [If you need nightvision](https://www.amazon.com/gp/product/B0829HZ3Q7/ref=as_li_qf_asin_il_tl?ie=UTF8&tag=richiep0d-20&creative=9325&linkCode=as2&creativeASIN=B0829HZ3Q7&linkId=c03e366c7079518c7dfcaf0bb3df19c4)
 * Ability to connect to your pi (e.g., headless ssh)
 * An account with Heroku. If you don’t have one, go create one. Again it’s free!
 
