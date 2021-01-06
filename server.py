@@ -40,6 +40,8 @@ if __name__ == '__main__':
     url = HEROADDR
     output = Popen(
         "ffmpeg -loglevel fatal -f v4l2 -video_size 640x480 -r 25 -i /dev/video0 -f mpegts -vf 'vflip, hflip' -vcodec mpeg1video -s 640x480 -b:v 1000k -bf 0 -",
+        # Use below if on a Pi Zero W -> need the smaller size
+        # "ffmpeg -f v4l2 -video_size 352x288 -i /dev/video1 -f mpegts -vf 'vflip, hflip' -vcodec mpeg1video -s 352x288 -bf 0 -",
         stdout=PIPE, stderr=sys.stdout, shell=True)
 
     attempt = 0
@@ -53,33 +55,22 @@ if __name__ == '__main__':
                 pass
             else:
                 logger.error("ERROR. ConnectionError: {}".format(err))
-                logger.info("Retrying in 2 seconds")
-                attempt += 1
-                time.sleep(2)
         except ConnectionRefusedError as err:
             logger.error("ERROR. ConnectionRefusedError: {}".format(err))
-            logger.info("Retrying in 2 seconds")
-            attempt += 1
-            time.sleep(2)
         except exceptions.NewConnectionError as err:
             logger.error("ERROR. NewConnectionError: {}".format(err))
-            attempt += 1
-            time.sleep(2)
         except requests.exceptions.RequestException as err:
             logger.error("ERROR. RequestException: {}".format(err))
-            logger.info("Retrying in 2 seconds")
-            attempt += 1
-            time.sleep(2)
+        # Bad practice, but don't really care why there is a traceback. just want to retry and keep streaming.
         except:
             logger.error("ERROR. All other exceptions.")
             logger.error(sys.exc_info()[1]) # the error text
-            attempt += 1
-            time.sleep(2)
         else:
             logger.warning("ELSE. Printing result:")
             logger.warning(res)
-            logger.info("Breaking out of while loop on attempt #{}".format(attempt))
+        finally:
+            # retry since ending up here means the post ended (it should never end since it is constantly streaming data).
+            logger.info("Retrying in 2 seconds")
             attempt += 1
             time.sleep(2)
-            break
 
