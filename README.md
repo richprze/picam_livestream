@@ -15,15 +15,15 @@ Utilizes [jsmpeg](https://github.com/phoboslab/jsmpeg) to handle stream playback
 
 ## How well does this work?
 Very, very well. Checkout two different comparison videos of picam_livestream:
-1. Compare vs. actual nest cam:
-1. Compare picam_livestream running on a 3A+ vs. a ZeroW with stopwatch to show actual delay
+1. Picam_livestream vs. Nest Cam: https://vimeo.com/337640307
+1. Compare picam_livestream running on a 3A+ vs. a ZeroW with stopwatch to show actual delay: https://vimeo.com/497717491
 
 ## What you need (other than this code)
 * A Raspberry Pi with 4 cores is preferred (e.g., 3B or 3A+).
   * The ZeroW will work, but the quality is lower and the delay is greater (~ 4 seconds). Also you have to change the ffmpeg command in server.py
 * A camera that connects to the pi. Can connect either via the ribbon or via USB. Here are some suggestions:
-  * One
-  * Two
+  * The most basic - https://www.amazon.com/gp/product/B00N1YJKFS/
+  * If you need nightvision - https://www.amazon.com/gp/product/B0829HZ3Q7/
 * Ability to connect to your pi (e.g., headless ssh)
 * An account with Heroku. If you don’t have one, go create one. Again it’s free!
 
@@ -58,10 +58,6 @@ https://guarded-garden-41222.herokuapp.com
 
 The URL is an example Heroku URL. Yours will be different. Go to that site, enter the username and password you created (not the Heroku login) and you should see the live video stream from your Pi!
 
-
-**For a complete novice** - first time pi user and new to programming - I wrote out the excruciatingly detailed steps here. Including how to connect to your pi for the first time and walking you through the command line commands.
-
-
 ## The basic concept
 
 ### Setup script - setup.sh
@@ -82,9 +78,7 @@ Uses ffmpeg to process the live video stream into the mpegts format (read the [j
 
 ```runserver.sh```. This is the infinite while loop that is running server.py. Will restart if python or the program borks for any reason.
 
-
 ### Heroku and app.js
 ```app.js``` is both an express server that hosts the website and a websocket server that handles the streaming of the video. The core is based on [jsmpeg's websocket-relay.js](https://github.com/phoboslab/jsmpeg), but modifies it to run on Heroku and require a login for security. It receives a video stream via the POST call from server.py and uses websockets to broadcast the stream to subscribers. The video is played via jsmpeg on the index page. Jsmpeg is magic. It’s open source and runs on ANY website (since it’s javascript). Not only is it free, but it’s fast. The delay from reality to playing is < 0.3 seconds. Looking around the web I found many examples of 5+ second delays.
 
 Utilizes the free dyno on heroku so you don’t have to pay! The alternatives are to host the website on your pi itself (requiring you to deal with opening up access to your home’s IP address and other headaches of hosting a website yourself) or put the code on an existing website.
-
